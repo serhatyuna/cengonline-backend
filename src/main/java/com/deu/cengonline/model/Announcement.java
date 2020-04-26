@@ -15,7 +15,7 @@ public class Announcement extends AuditModel {
 	private String description;
 
 	@ManyToOne
-	@JoinColumn(name = "id", nullable = false)
+	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
 
 	protected Announcement() {

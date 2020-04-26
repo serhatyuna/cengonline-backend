@@ -20,10 +20,10 @@ public class Course extends AuditModel {
 	@Size(min = 2, max = 100)
 	private String term;
 
-	@OneToMany(mappedBy = "courses")
+	@OneToMany(mappedBy = "course")
 	private Set<Announcement> announcements;
 
-	@OneToMany(mappedBy = "courses")
+	@OneToMany(mappedBy = "course")
 	private Set<Assignment> assignments;
 
 	protected Course() {
