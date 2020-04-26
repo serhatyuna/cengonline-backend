@@ -44,9 +44,23 @@ public class User extends AuditModel {
 		inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
 
+	@ManyToMany(cascade = CascadeType.ALL)
+	@JoinTable(name = "enrollments",
+		joinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"),
+		inverseJoinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"))
+	private Set<Course> enrollments = new HashSet<>();
 
 	@OneToMany(mappedBy = "user")
 	private Set<Submission> submissions;
+
+	@OneToMany(mappedBy = "teacher")
+	private Set<Course> courses;
+
+	@OneToMany(mappedBy = "sender")
+	private Set<Message> sentMessages;
+
+	@OneToMany(mappedBy = "receiver")
+	private Set<Message> receivedMessages;
 
 	protected User() {
 	}
@@ -104,5 +118,45 @@ public class User extends AuditModel {
 
 	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
+	}
+
+	public Set<Course> getEnrollments() {
+		return enrollments;
+	}
+
+	public void setEnrollments(Set<Course> enrollments) {
+		this.enrollments = enrollments;
+	}
+
+	public Set<Submission> getSubmissions() {
+		return submissions;
+	}
+
+	public void setSubmissions(Set<Submission> submissions) {
+		this.submissions = submissions;
+	}
+
+	public Set<Course> getCourses() {
+		return courses;
+	}
+
+	public void setCourses(Set<Course> courses) {
+		this.courses = courses;
+	}
+
+	public Set<Message> getSentMessages() {
+		return sentMessages;
+	}
+
+	public void setSentMessages(Set<Message> sentMessages) {
+		this.sentMessages = sentMessages;
+	}
+
+	public Set<Message> getReceivedMessages() {
+		return receivedMessages;
+	}
+
+	public void setReceivedMessages(Set<Message> receivedMessages) {
+		this.receivedMessages = receivedMessages;
 	}
 }

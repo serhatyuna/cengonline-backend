@@ -26,6 +26,13 @@ public class Course extends AuditModel {
 	@OneToMany(mappedBy = "course")
 	private Set<Assignment> assignments;
 
+	@ManyToMany(mappedBy = "enrollments")
+	private Set<User> students;
+
+	@ManyToOne
+	@JoinColumn(name = "teacher_id", nullable = false)
+	private User teacher;
+
 	protected Course() {
 	}
 
@@ -64,5 +71,29 @@ public class Course extends AuditModel {
 
 	public void setAnnouncements(Set<Announcement> announcements) {
 		this.announcements = announcements;
+	}
+
+	public Set<Assignment> getAssignments() {
+		return assignments;
+	}
+
+	public void setAssignments(Set<Assignment> assignments) {
+		this.assignments = assignments;
+	}
+
+	public Set<User> getStudents() {
+		return students;
+	}
+
+	public void setStudents(Set<User> students) {
+		this.students = students;
+	}
+
+	public User getTeacher() {
+		return teacher;
+	}
+
+	public void setTeacher(User teacher) {
+		this.teacher = teacher;
 	}
 }

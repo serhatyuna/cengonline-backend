@@ -3,6 +3,7 @@ package com.deu.cengonline.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.Date;
 import java.util.Set;
 
 @Entity
@@ -20,6 +21,10 @@ public class Assignment extends AuditModel {
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "due_date", nullable = false)
+	private Date dueDate;
+
 	@ManyToOne
 	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
@@ -27,13 +32,18 @@ public class Assignment extends AuditModel {
 	@OneToMany(mappedBy = "assignment")
 	private Set<Submission> submissions;
 
-
 	protected Assignment() {
 	}
 
 	public Assignment(String title, String description) {
 		this.title = title;
 		this.description = description;
+	}
+
+	public Assignment(String title, String description, Date dueDate) {
+		this.title = title;
+		this.description = description;
+		this.dueDate = dueDate;
 	}
 
 	public Long getId() {
@@ -66,5 +76,21 @@ public class Assignment extends AuditModel {
 
 	public void setCourse(Course course) {
 		this.course = course;
+	}
+
+	public Date getDueDate() {
+		return dueDate;
+	}
+
+	public void setDueDate(Date dueDate) {
+		this.dueDate = dueDate;
+	}
+
+	public Set<Submission> getSubmissions() {
+		return submissions;
+	}
+
+	public void setSubmissions(Set<Submission> submissions) {
+		this.submissions = submissions;
 	}
 }
