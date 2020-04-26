@@ -7,7 +7,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "courses")
-public class Course {
+public class Course extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -22,6 +22,12 @@ public class Course {
 
 	@OneToMany(mappedBy = "courses")
 	private Set<Announcement> announcements;
+
+	@OneToMany(mappedBy = "courses")
+	private Set<Assignment> assignments;
+
+	protected Course() {
+	}
 
 	public Course(String title, String term) {
 		this.title = title;

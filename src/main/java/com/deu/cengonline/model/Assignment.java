@@ -2,13 +2,18 @@ package com.deu.cengonline.model;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Entity
-@Table(name = "announcements")
-public class Announcement extends AuditModel {
+@Table(name = "assignments")
+public class Assignment extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@NotBlank
+	@Size(min = 2, max = 100)
+	private String title;
 
 	@NotBlank
 	@Column(columnDefinition = "TEXT")
@@ -18,10 +23,11 @@ public class Announcement extends AuditModel {
 	@JoinColumn(name = "id", nullable = false)
 	private Course course;
 
-	protected Announcement() {
+	protected Assignment() {
 	}
 
-	public Announcement(String description) {
+	public Assignment(String title, String description) {
+		this.title = title;
 		this.description = description;
 	}
 
@@ -31,6 +37,14 @@ public class Announcement extends AuditModel {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 
 	public String getDescription() {

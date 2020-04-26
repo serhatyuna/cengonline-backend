@@ -44,7 +44,7 @@ public class User extends AuditModel {
 		inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
 
-	public User() {
+	protected User() {
 	}
 
 	public User(String name, String surname, String email, String password) {
