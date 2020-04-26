@@ -1,46 +1,62 @@
 package com.deu.cengonline.model;
 
-import org.hibernate.annotations.NaturalId;
-
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.HashSet;
 import java.util.Set;
+
 @Entity
 @Table(name = "courses")
 public class Course {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @NotBlank
-    @Size(min = 2, max = 100)
-    private String title;
+	@NotBlank
+	@Size(min = 2, max = 100)
+	private String title;
 
-    @NotBlank
-    @Size(min = 2, max = 100)
-    private String term;
+	@NotBlank
+	@Size(min = 2, max = 100)
+	private String term;
 
-    public Course(String title, String term) {
-        this.title = title;
-        this.term = term;
-    }
+	@OneToMany(mappedBy = "courses")
+	private Set<Announcement> announcements;
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+	public Course(String title, String term) {
+		this.title = title;
+		this.term = term;
+	}
 
-    public void setTerm(String term) {
-        this.term = term;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public String getTerm() {
-        return term;
-    }
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setTerm(String term) {
+		this.term = term;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public String getTerm() {
+		return term;
+	}
+
+	public Set<Announcement> getAnnouncements() {
+		return announcements;
+	}
+
+	public void setAnnouncements(Set<Announcement> announcements) {
+		this.announcements = announcements;
+	}
 }
