@@ -3,6 +3,7 @@ package com.deu.cengonline.model;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.Set;
 
 @Entity
 @Table(name = "assignments")
@@ -20,8 +21,12 @@ public class Assignment extends AuditModel {
 	private String description;
 
 	@ManyToOne
-	@JoinColumn(name = "id", nullable = false)
+	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
+
+	@OneToMany(mappedBy = "assignment")
+	private Set<Submission> submissions;
+
 
 	protected Assignment() {
 	}

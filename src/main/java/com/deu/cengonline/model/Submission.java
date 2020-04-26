@@ -11,11 +11,11 @@ public class Submission extends AuditModel {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "id", nullable = false)
+    @JoinColumn(name = "assignment_id", nullable = false)
     private Assignment assignment;
 
     @NotBlank
