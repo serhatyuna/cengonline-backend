@@ -110,4 +110,22 @@ public class CourseController {
 		courseRepository.save(newCourse);
 		return ResponseEntity.ok(newCourse);
 	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long courseID) {
+		Optional<Course> course = courseRepository.findById(courseID);
+
+		if (!course.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format("The course with id(%d) does not exist!", courseID));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+
+		Course courseToDelete = course.get();
+		courseRepository.delete(courseToDelete);
+
+		Response response = new Response(HttpStatus.OK,
+			String.format("Course with id(%d) deleted successfully!", courseID));
+		return new ResponseEntity<>(response, response.getStatus());
+	}
 }
