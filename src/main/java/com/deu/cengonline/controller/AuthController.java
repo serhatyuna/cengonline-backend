@@ -2,7 +2,7 @@ package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.request.LoginForm;
 import com.deu.cengonline.message.request.SignUpForm;
-import com.deu.cengonline.message.response.ApiError;
+import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.message.response.JwtResponse;
 import com.deu.cengonline.model.Role;
 import com.deu.cengonline.model.RoleName;
@@ -60,16 +60,16 @@ public class AuthController {
 			String jwt = jwtProvider.generateJwtToken(authentication);
 			return ResponseEntity.ok(new JwtResponse(jwt));
 		} catch (BadCredentialsException e) {
-			ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Username or password does not match!", e);
-			return new ResponseEntity<>(apiError, apiError.getStatus());
+			Response response = new Response(HttpStatus.BAD_REQUEST, "Username or password does not match!", e);
+			return new ResponseEntity<>(response, response.getStatus());
 		}
 	}
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpForm signUpRequest) {
 		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-			ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Email is already in use!");
-			return new ResponseEntity<>(apiError, apiError.getStatus());
+			Response response = new Response(HttpStatus.BAD_REQUEST, "Email is already in use!");
+			return new ResponseEntity<>(response, response.getStatus());
 		}
 
 		// Creating user's account

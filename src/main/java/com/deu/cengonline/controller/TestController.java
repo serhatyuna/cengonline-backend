@@ -8,9 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class TestController {
-
-	// şöyle bi kullanım da var:
-	// "hasRole('USER') or hasRole('ADMIN')"
 	@GetMapping("/api/test/student")
 	@PreAuthorize("hasRole('STUDENT')")
 	public String studentAccess() {
