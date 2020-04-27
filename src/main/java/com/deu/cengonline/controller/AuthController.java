@@ -2,8 +2,8 @@ package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.request.LoginForm;
 import com.deu.cengonline.message.request.SignUpForm;
-import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.message.response.JwtResponse;
+import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.model.Role;
 import com.deu.cengonline.model.RoleName;
 import com.deu.cengonline.model.User;
@@ -78,8 +78,7 @@ public class AuthController {
 
 		Set<String> strRoles = signUpRequest.getRole();
 		Set<Role> roles = new HashSet<>();
-		if(!strRoles.contains("teacher") && !strRoles.contains("student"))
-		{
+		if (!strRoles.contains("teacher") && !strRoles.contains("student")) {
 			Response response = new Response(HttpStatus.BAD_REQUEST, "Not sufficient roles");
 			return new ResponseEntity<>(response, response.getStatus());
 		}
@@ -97,7 +96,6 @@ public class AuthController {
 					break;
 			}
 		});
-
 
 		user.setRoles(roles);
 		userRepository.save(user);
