@@ -1,7 +1,6 @@
 package com.deu.cengonline.model;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -10,7 +9,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "courses")
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
 public class Course extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

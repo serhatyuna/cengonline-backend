@@ -1,6 +1,7 @@
 package com.deu.cengonline.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.hibernate.annotations.NaturalId;
 
@@ -39,6 +40,7 @@ public class User extends AuditModel {
 
 	@NotBlank
 	@Size(min = 6, max = 100)
+	@JsonIgnore
 	private String password;
 
 	@ManyToMany(fetch = FetchType.LAZY)
@@ -57,6 +59,7 @@ public class User extends AuditModel {
 	private Set<Submission> submissions;
 
 	@OneToMany(mappedBy = "teacher")
+	@JsonIgnore
 	private Set<Course> courses;
 
 	@OneToMany(mappedBy = "sender")

@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +45,7 @@ public class CourseController {
 	@Autowired
 	CourseRepository courseRepository;
 
-	@GetMapping("/")
+	@GetMapping()
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllCourses() {
 		List<Course> list = courseRepository.findAll();
@@ -53,7 +54,7 @@ public class CourseController {
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
-		return ResponseEntity.ok().body(list);
+		return ResponseEntity.ok(list);
 	}
 
 	@GetMapping("/{id}")
@@ -66,10 +67,10 @@ public class CourseController {
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
-		return ResponseEntity.ok().body(course);
+		return ResponseEntity.ok(course);
 	}
 
-	@PostMapping("/")
+	@PostMapping()
 	@PreAuthorize("hasRole('TEACHER')")
 	public ResponseEntity<?> addCourse(@Valid @RequestBody Course course) {
 		// Get email of logged in user
@@ -78,7 +79,8 @@ public class CourseController {
 		Optional<User> user = userRepository.findByEmail(email);
 
 		if (!user.isPresent()) {
-			Response response = new Response(HttpStatus.BAD_REQUEST, "The logged in account is not a teacher!");
+			Response response = new Response(HttpStatus.BAD_REQUEST,
+				"The logged in account is not a teacher!");
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -86,7 +88,26 @@ public class CourseController {
 		course.setTeacher(teacher);
 		courseRepository.save(course);
 
-		Response response = new Response(HttpStatus.OK, "The class is created successfully!");
-		return new ResponseEntity<>(response, response.getStatus());
+		return ResponseEntity.ok(course);
+	}
+
+	@PutMapping("/{id}")
+	@PreAuthorize("hasRole('TEACHER')")
+	public ResponseEntity<?> updateCourse(
+		@PathVariable(value = "id") Long courseID, @Valid @RequestBody Course courseDetails) {
+		Optional<Course> course = courseRepository.findById(courseID);
+
+		if (!course.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format("The course with id(%d) does not exist!", courseID));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+
+		Course newCourse = course.get();
+		newCourse.setTitle(courseDetails.getTitle());
+		newCourse.setTerm(courseDetails.getTerm());
+		newCourse.setUpdatedAt(new Date());
+		courseRepository.save(newCourse);
+		return ResponseEntity.ok(newCourse);
 	}
 }
