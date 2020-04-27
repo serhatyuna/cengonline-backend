@@ -112,7 +112,7 @@ public class CourseController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long courseID) {
+	public ResponseEntity<?> deleteCourse(@PathVariable(value = "id") Long courseID) {
 		Optional<Course> course = courseRepository.findById(courseID);
 
 		if (!course.isPresent()) {
