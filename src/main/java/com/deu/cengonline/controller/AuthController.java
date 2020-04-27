@@ -78,7 +78,11 @@ public class AuthController {
 
 		Set<String> strRoles = signUpRequest.getRole();
 		Set<Role> roles = new HashSet<>();
-
+		if(!strRoles.contains("teacher") && !strRoles.contains("student"))
+		{
+			Response response = new Response(HttpStatus.BAD_REQUEST, "Not sufficient roles");
+			return new ResponseEntity<>(response, response.getStatus());
+		}
 		strRoles.forEach(role -> {
 			switch (role) {
 				case "teacher":
@@ -87,13 +91,13 @@ public class AuthController {
 					roles.add(pmRole);
 					break;
 				case "student":
-				default:
 					Role adminRole = roleRepository.findByName(RoleName.ROLE_STUDENT)
 						.orElseThrow(() -> new RuntimeException("User Role not found."));
 					roles.add(adminRole);
 					break;
 			}
 		});
+
 
 		user.setRoles(roles);
 		userRepository.save(user);

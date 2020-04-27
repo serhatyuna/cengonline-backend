@@ -1,8 +1,6 @@
 package com.deu.cengonline.message.request;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.Set;
 
 public class SignUpForm {
@@ -19,6 +17,7 @@ public class SignUpForm {
 	@Email
 	private String email;
 
+	@NotEmpty
 	private Set<String> role;
 
 	@NotBlank
