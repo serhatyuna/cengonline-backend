@@ -59,7 +59,6 @@ public class User extends AuditModel {
 	private Set<Submission> submissions;
 
 	@OneToMany(mappedBy = "teacher")
-	@JsonIgnore
 	private Set<Course> courses;
 
 	@OneToMany(mappedBy = "sender")

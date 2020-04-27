@@ -1,5 +1,7 @@
 package com.deu.cengonline.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
@@ -15,6 +17,7 @@ public class Submission extends AuditModel {
 	private User user;
 
 	@ManyToOne
+	@JsonIgnore
 	@JoinColumn(name = "assignment_id", nullable = false)
 	private Assignment assignment;
 

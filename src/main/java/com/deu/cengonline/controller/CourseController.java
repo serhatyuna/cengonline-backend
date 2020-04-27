@@ -1,6 +1,8 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
+import com.deu.cengonline.model.Announcement;
+import com.deu.cengonline.model.Assignment;
 import com.deu.cengonline.model.Course;
 import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.CourseRepository;
@@ -18,9 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -53,7 +53,6 @@ public class CourseController {
 			Response response = new Response(HttpStatus.NOT_FOUND, "There is no course yet!");
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-
 		return ResponseEntity.ok(list);
 	}
 
@@ -87,7 +86,6 @@ public class CourseController {
 		User teacher = user.get();
 		course.setTeacher(teacher);
 		courseRepository.save(course);
-
 		return ResponseEntity.ok(course);
 	}
 
@@ -127,5 +125,32 @@ public class CourseController {
 		Response response = new Response(HttpStatus.OK,
 			String.format("Course with id(%d) deleted successfully!", courseID));
 		return new ResponseEntity<>(response, response.getStatus());
+	}
+
+	@GetMapping("/{id}/announcements") // get all announcements of the the course with given id.
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> announcements(@PathVariable(value = "id") Long courseID) {
+		Optional<Course> course = courseRepository.findById(courseID);
+
+		if (!course.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+		Set<Announcement> announcementSet = course.get().getAnnouncements();
+		return ResponseEntity.ok(announcementSet);
+	}
+
+	@GetMapping("/{id}/assignments")  // get all assignments of the the course with given id.
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> assign(@PathVariable(value = "id") Long courseID) {
+		Optional<Course> course = courseRepository.findById(courseID);
+
+		if (!course.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+
+		Set<Assignment> assignmentSet = course.get().getAssignments();
+		return ResponseEntity.ok(assignmentSet);
 	}
 }

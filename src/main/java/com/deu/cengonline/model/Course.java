@@ -1,5 +1,6 @@
 package com.deu.cengonline.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.persistence.*;
@@ -24,6 +25,7 @@ public class Course extends AuditModel {
 	private String term;
 
 	@OneToMany(mappedBy = "course")
+	@JsonIgnore
 	private Set<Announcement> announcements;
 
 	@OneToMany(mappedBy = "course")
