@@ -52,7 +52,7 @@ public class UserController {
     public ResponseEntity<?> getAllUsers() {
         List<User> users= userRepository.findAll();
         if (users.isEmpty()) {
-            Response response = new Response(HttpStatus.NOT_FOUND, "There is no course yet!");
+            Response response = new Response(HttpStatus.NOT_FOUND, "There is no user yet!");
             return new ResponseEntity<>(response, response.getStatus());
         }
         return ResponseEntity.ok(users);
