@@ -82,11 +82,11 @@ public class CourseController {
 				"The logged in account is not a teacher!");
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-
+		Course newCourse = new Course(course.getTitle(),course.getTerm());
 		User teacher = user.get();
-		course.setTeacher(teacher);
-		courseRepository.save(course);
-		return ResponseEntity.ok(course);
+		newCourse.setTeacher(teacher);
+		courseRepository.save(newCourse);
+		return ResponseEntity.ok(newCourse);
 	}
 
 	@PutMapping("/{id}")
@@ -127,6 +127,7 @@ public class CourseController {
 		return new ResponseEntity<>(response, response.getStatus());
 	}
 
+	/*
 	@GetMapping("/{id}/announcements") // get all announcements of the the course with given id.
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> announcements(@PathVariable(value = "id") Long courseID) {
@@ -152,5 +153,5 @@ public class CourseController {
 
 		Set<Assignment> assignmentSet = course.get().getAssignments();
 		return ResponseEntity.ok(assignmentSet);
-	}
+	} */
 }
