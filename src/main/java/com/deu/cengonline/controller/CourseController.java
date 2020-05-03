@@ -49,10 +49,6 @@ public class CourseController {
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllCourses() {
 		List<Course> list = courseRepository.findAll();
-		if (list.isEmpty()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "There is no course yet!");
-			return new ResponseEntity<>(response, response.getStatus());
-		}
 		return ResponseEntity.ok(list);
 	}
 

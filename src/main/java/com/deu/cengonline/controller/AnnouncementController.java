@@ -54,10 +54,6 @@ public class AnnouncementController {
     @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
     public ResponseEntity<?> getAllAnnouncements() {
         List<Announcement> list = announcementRepository.findAll();
-        if (list.isEmpty()) {
-            Response response = new Response(HttpStatus.NOT_FOUND, "There is no student yet!");
-            return new ResponseEntity<>(response, response.getStatus());
-        }
         return ResponseEntity.ok(list);
     }
 
@@ -71,11 +67,6 @@ public class AnnouncementController {
             return new ResponseEntity<>(response, response.getStatus());
         }
         Set<Announcement> list = course.get().getAnnouncements();
-
-        if (list.isEmpty()) {
-            Response response = new Response(HttpStatus.NOT_FOUND, "There is no student yet!");
-            return new ResponseEntity<>(response, response.getStatus());
-        }
         return ResponseEntity.ok(list);
     }
 
@@ -133,6 +124,7 @@ public class AnnouncementController {
         return ResponseEntity.ok(newAnnouncement);
     }
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> deleteAnnouncement(@PathVariable(value = "id") Long announcementID) {
         Optional<Announcement> announcement = announcementRepository.findById(announcementID);
 
