@@ -1,5 +1,7 @@
 package com.deu.cengonline.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
@@ -15,8 +17,12 @@ public class Announcement extends AuditModel {
 	private String description;
 
 	@ManyToOne
-	@JoinColumn(name = "id", nullable = false)
+	@JsonIgnore
+	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
+
+	protected Announcement() {
+	}
 
 	public Announcement(String description) {
 		this.description = description;

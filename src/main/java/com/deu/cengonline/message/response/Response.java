@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
-public class ApiError {
+public class Response {
 
 	private HttpStatus status;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
@@ -13,29 +13,29 @@ public class ApiError {
 	private String message;
 	private String debugMessage;
 
-	private ApiError() {
+	private Response() {
 		timestamp = LocalDateTime.now();
 	}
 
-	public ApiError(HttpStatus status) {
+	public Response(HttpStatus status) {
 		this();
 		this.status = status;
 	}
 
-	public ApiError(HttpStatus status, Throwable ex) {
+	public Response(HttpStatus status, Throwable ex) {
 		this();
 		this.status = status;
 		this.message = "Unexpected error";
 		this.debugMessage = ex.getLocalizedMessage();
 	}
 
-	public ApiError(HttpStatus status, String message) {
+	public Response(HttpStatus status, String message) {
 		this();
 		this.status = status;
 		this.message = message;
 	}
 
-	public ApiError(HttpStatus status, String message, Throwable ex) {
+	public Response(HttpStatus status, String message, Throwable ex) {
 		this();
 		this.status = status;
 		this.message = message;

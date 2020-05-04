@@ -2,8 +2,8 @@ package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.request.LoginForm;
 import com.deu.cengonline.message.request.SignUpForm;
-import com.deu.cengonline.message.response.ApiError;
 import com.deu.cengonline.message.response.JwtResponse;
+import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.model.Role;
 import com.deu.cengonline.model.RoleName;
 import com.deu.cengonline.model.User;
@@ -60,16 +60,16 @@ public class AuthController {
 			String jwt = jwtProvider.generateJwtToken(authentication);
 			return ResponseEntity.ok(new JwtResponse(jwt));
 		} catch (BadCredentialsException e) {
-			ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Username or password does not match!", e);
-			return new ResponseEntity<>(apiError, apiError.getStatus());
+			Response response = new Response(HttpStatus.BAD_REQUEST, "Username or password does not match!", e);
+			return new ResponseEntity<>(response, response.getStatus());
 		}
 	}
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpForm signUpRequest) {
 		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-			ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, "Email is already in use!");
-			return new ResponseEntity<>(apiError, apiError.getStatus());
+			Response response = new Response(HttpStatus.BAD_REQUEST, "Email is already in use!");
+			return new ResponseEntity<>(response, response.getStatus());
 		}
 
 		// Creating user's account
@@ -78,7 +78,10 @@ public class AuthController {
 
 		Set<String> strRoles = signUpRequest.getRole();
 		Set<Role> roles = new HashSet<>();
-
+		if (!strRoles.contains("teacher") && !strRoles.contains("student")) {
+			Response response = new Response(HttpStatus.BAD_REQUEST, "Not sufficient roles");
+			return new ResponseEntity<>(response, response.getStatus());
+		}
 		strRoles.forEach(role -> {
 			switch (role) {
 				case "teacher":
@@ -87,7 +90,6 @@ public class AuthController {
 					roles.add(pmRole);
 					break;
 				case "student":
-				default:
 					Role adminRole = roleRepository.findByName(RoleName.ROLE_STUDENT)
 						.orElseThrow(() -> new RuntimeException("User Role not found."));
 					roles.add(adminRole);

@@ -16,7 +16,7 @@ public class Role extends AuditModel {
 	@Column(length = 60)
 	private RoleName name;
 
-	public Role() {
+	protected Role() {
 	}
 
 	public Role(RoleName name) {
