@@ -1,6 +1,8 @@
 package com.deu.cengonline.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -25,6 +27,8 @@ public class Assignment extends AuditModel {
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "due_date", nullable = false)
+	@DateTimeFormat(pattern = "dd.MM.yyyy HH:mm")
+	@JsonFormat(pattern = "dd.MM.yyyy HH:mm")
 	private Date dueDate;
 
 	@ManyToOne

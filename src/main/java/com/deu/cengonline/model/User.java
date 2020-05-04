@@ -62,9 +62,11 @@ public class User extends AuditModel {
 	private Set<Course> courses;
 
 	@OneToMany(mappedBy = "sender")
+	@JsonIgnore
 	private Set<Message> sentMessages;
 
 	@OneToMany(mappedBy = "receiver")
+	@JsonIgnore
 	private Set<Message> receivedMessages;
 
 	protected User() {

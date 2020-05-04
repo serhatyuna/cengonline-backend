@@ -1,8 +1,6 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
-import com.deu.cengonline.model.Announcement;
-import com.deu.cengonline.model.Assignment;
 import com.deu.cengonline.model.Course;
 import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.CourseRepository;
@@ -20,7 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -78,7 +78,7 @@ public class CourseController {
 				"The logged in account is not a teacher!");
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-		Course newCourse = new Course(course.getTitle(),course.getTerm());
+		Course newCourse = new Course(course.getTitle(), course.getTerm());
 		User teacher = user.get();
 		newCourse.setTeacher(teacher);
 		courseRepository.save(newCourse);
