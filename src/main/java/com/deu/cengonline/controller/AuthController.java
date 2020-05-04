@@ -63,7 +63,7 @@ public class AuthController {
 			String jwt = jwtProvider.generateJwtToken(authentication);
 			return ResponseEntity.ok(new JwtResponse(jwt));
 		} catch (BadCredentialsException e) {
-			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(FAILED_LOGIN));
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(FAILED_LOGIN), e);
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 	}
