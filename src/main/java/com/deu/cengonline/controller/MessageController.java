@@ -21,6 +21,10 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.MESSAGE_TO_YOURSELF;
+import static com.deu.cengonline.util.ErrorName.USER_NOT_FOUND;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/messages")
@@ -55,7 +59,7 @@ public class MessageController {
 
 		if (!receiverUser.isPresent()) {
 			Response response = new Response(HttpStatus.BAD_REQUEST,
-				String.format("The user with id(%d) does not exist!", receiverID));
+				String.format(ERRORS.get(USER_NOT_FOUND), receiverID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -68,7 +72,6 @@ public class MessageController {
 		return ResponseEntity.ok(messages);
 	}
 
-	// TODO: Kendisine mesaj atamasın.
 	@PostMapping("/{receiverID}")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")  // send a message to given user id.
 	public ResponseEntity<?> sendMessage(@Valid @RequestBody Message message, @PathVariable(value = "receiverID") Long receiverID) {
@@ -81,12 +84,17 @@ public class MessageController {
 
 		if (!receiverUserOpt.isPresent()) {
 			Response response = new Response(HttpStatus.BAD_REQUEST,
-				String.format("The user with id(%d) does not exist!", receiverID));
+				String.format(ERRORS.get(USER_NOT_FOUND), receiverID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
 		User loggedInUser = loggedInUserOpt.get();
 		User receiverUser = receiverUserOpt.get();
+
+		if (loggedInUser.getId().equals(receiverUser.getId())) {
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(MESSAGE_TO_YOURSELF));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
 
 		String newContent = message.getContent();
 		Message newMessage = new Message(newContent);

@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.ASSIGNMENT_NOT_FOUND;
+import static com.deu.cengonline.util.ErrorName.COURSE_NOT_FOUND;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -60,7 +63,8 @@ public class AssignmentController {
 		Optional<Course> course = courseRepository.findById(courseID);
 
 		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		Set<Assignment> list = course.get().getAssignments();
@@ -73,7 +77,8 @@ public class AssignmentController {
 		Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
 
 		if (!assignment.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Assignment is not found!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		return ResponseEntity.ok(assignment);
@@ -85,11 +90,10 @@ public class AssignmentController {
 		Optional<Course> course = courseRepository.findById(courseID);
 
 		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found to make an assignment!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-
-		System.out.println(assignment.getDueDate());
 
 		Assignment newAssignment = new Assignment(assignment.getTitle(), assignment.getDescription(), assignment.getDueDate());
 		Course courseEntity = course.get();
@@ -106,7 +110,7 @@ public class AssignmentController {
 
 		if (!assignment.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format("The assignment with id(%d) does not exist!", assignmentID));
+				String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -125,7 +129,7 @@ public class AssignmentController {
 
 		if (!assignment.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format("The assignment with id(%d) does not exist!", assignmentID));
+				String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 

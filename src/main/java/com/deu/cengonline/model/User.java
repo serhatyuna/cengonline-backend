@@ -55,17 +55,33 @@ public class User extends AuditModel {
 		inverseJoinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"))
 	private Set<Course> enrollments = new HashSet<>();
 
-	@OneToMany(mappedBy = "user")
+	@OneToMany(
+		mappedBy = "user",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Submission> submissions;
 
-	@OneToMany(mappedBy = "teacher")
+	@OneToMany(
+		mappedBy = "teacher",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Course> courses;
 
-	@OneToMany(mappedBy = "sender")
+	@OneToMany(
+		mappedBy = "sender",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	@JsonIgnore
 	private Set<Message> sentMessages;
 
-	@OneToMany(mappedBy = "receiver")
+	@OneToMany(
+		mappedBy = "receiver",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	@JsonIgnore
 	private Set<Message> receivedMessages;
 

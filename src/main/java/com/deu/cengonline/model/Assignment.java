@@ -36,7 +36,11 @@ public class Assignment extends AuditModel {
 	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
 
-	@OneToMany(mappedBy = "assignment")
+	@OneToMany(
+		mappedBy = "assignment",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Submission> submissions;
 
 	protected Assignment() {
@@ -99,5 +103,9 @@ public class Assignment extends AuditModel {
 
 	public void setSubmissions(Set<Submission> submissions) {
 		this.submissions = submissions;
+	}
+
+	public void addSubmission(Submission submission) {
+		submissions.add(submission);
 	}
 }

@@ -22,6 +22,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.COURSE_NOT_FOUND;
+import static com.deu.cengonline.util.ErrorName.USER_NOT_FOUND;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/courses")
@@ -58,7 +62,8 @@ public class CourseController {
 		Optional<Course> course = courseRepository.findById(courseID);
 
 		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -71,11 +76,12 @@ public class CourseController {
 		// Get email of logged in user
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String email = ((UserPrinciple) principal).getEmail();
+		Long userID = ((UserPrinciple) principal).getId();
 		Optional<User> user = userRepository.findByEmail(email);
 
 		if (!user.isPresent()) {
 			Response response = new Response(HttpStatus.BAD_REQUEST,
-				"The logged in account is not a teacher!");
+				String.format(ERRORS.get(USER_NOT_FOUND), userID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		Course newCourse = new Course(course.getTitle(), course.getTerm());
@@ -93,7 +99,7 @@ public class CourseController {
 
 		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format("The course with id(%d) does not exist!", courseID));
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -111,7 +117,7 @@ public class CourseController {
 
 		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format("The course with id(%d) does not exist!", courseID));
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -123,31 +129,4 @@ public class CourseController {
 		return new ResponseEntity<>(response, response.getStatus());
 	}
 
-	/*
-	@GetMapping("/{id}/announcements") // get all announcements of the the course with given id.
-	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
-	public ResponseEntity<?> announcements(@PathVariable(value = "id") Long courseID) {
-		Optional<Course> course = courseRepository.findById(courseID);
-
-		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
-			return new ResponseEntity<>(response, response.getStatus());
-		}
-		Set<Announcement> announcementSet = course.get().getAnnouncements();
-		return ResponseEntity.ok(announcementSet);
-	}
-
-	@GetMapping("/{id}/assignments")  // get all assignments of the the course with given id.
-	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
-	public ResponseEntity<?> assign(@PathVariable(value = "id") Long courseID) {
-		Optional<Course> course = courseRepository.findById(courseID);
-
-		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
-			return new ResponseEntity<>(response, response.getStatus());
-		}
-
-		Set<Assignment> assignmentSet = course.get().getAssignments();
-		return ResponseEntity.ok(assignmentSet);
-	} */
 }

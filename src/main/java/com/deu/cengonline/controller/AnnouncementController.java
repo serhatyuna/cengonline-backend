@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.ANNOUNCEMENT_NOT_FOUND;
+import static com.deu.cengonline.util.ErrorName.COURSE_NOT_FOUND;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -61,9 +64,11 @@ public class AnnouncementController {
 		Optional<Course> course = courseRepository.findById(courseID);
 
 		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
+
 		Set<Announcement> list = course.get().getAnnouncements();
 		return ResponseEntity.ok(list);
 	}
@@ -74,7 +79,8 @@ public class AnnouncementController {
 		Optional<Announcement> announcement = announcementRepository.findById(announcementId);
 
 		if (!announcement.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Announcement is not found!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -87,9 +93,11 @@ public class AnnouncementController {
 		Optional<Course> course = courseRepository.findById(courseID);
 
 		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found to make an announcement!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
+
 		Announcement newAnnouncement = new Announcement(announcement.getDescription());
 		Course courseEntity = course.get();
 		newAnnouncement.setCourse(courseEntity);
@@ -105,7 +113,7 @@ public class AnnouncementController {
 
 		if (!announcement.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format("The announcement with id(%d) does not exist!", announcementID));
+				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -122,7 +130,7 @@ public class AnnouncementController {
 
 		if (!announcement.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format("The announcement with id(%d) does not exist!", announcementID));
+				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 

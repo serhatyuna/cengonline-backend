@@ -24,11 +24,19 @@ public class Course extends AuditModel {
 	@Size(min = 2, max = 100)
 	private String term;
 
-	@OneToMany(mappedBy = "course")
+	@OneToMany(
+		mappedBy = "course",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	@JsonIgnore
 	private Set<Announcement> announcements;
 
-	@OneToMany(mappedBy = "course")
+	@OneToMany(
+		mappedBy = "course",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Assignment> assignments;
 
 	@ManyToMany(mappedBy = "enrollments")
