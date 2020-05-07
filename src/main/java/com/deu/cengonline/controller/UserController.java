@@ -2,6 +2,7 @@ package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.model.Course;
+import com.deu.cengonline.model.Role;
 import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.CourseRepository;
 import com.deu.cengonline.repository.RoleRepository;
@@ -17,8 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.*;
@@ -45,6 +45,8 @@ public class UserController {
 	@Autowired
 	CourseRepository courseRepository;
 
+
+
 	@GetMapping("/")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllUsers() {
@@ -55,6 +57,20 @@ public class UserController {
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		return ResponseEntity.ok(users);
+	}
+
+	@GetMapping("/current")
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getCurrentUser() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Long id = ((UserPrinciple) principal).getId();
+		Optional<User> current = userRepository.findById(id);
+		if (!current.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND, ERRORS.get(NO_USER_YET));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+		else
+			return ResponseEntity.ok(current.get());
 	}
 
 	@PostMapping("/attend-class/{id}")

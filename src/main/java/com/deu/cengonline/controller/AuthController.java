@@ -10,6 +10,7 @@ import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.RoleRepository;
 import com.deu.cengonline.repository.UserRepository;
 import com.deu.cengonline.security.jwt.JwtProvider;
+import com.deu.cengonline.security.services.UserPrinciple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
@@ -105,5 +108,19 @@ public class AuthController {
 		userRepository.save(user);
 
 		return ResponseEntity.ok().body("User registered successfully!");
+	}
+
+	public static Long getCurrentUserId() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Long userID = ((UserPrinciple) principal).getId();
+		return userID;
+	}
+	public static Role getCurrentUserRole(Set<Role> roles) {
+		Collection c;
+
+		Iterator iter = roles.iterator();
+		Object first = iter.next();
+		Role role = (Role) first;
+		return role;
 	}
 }

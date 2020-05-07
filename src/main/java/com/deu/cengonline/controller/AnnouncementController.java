@@ -1,8 +1,7 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
-import com.deu.cengonline.model.Announcement;
-import com.deu.cengonline.model.Course;
+import com.deu.cengonline.model.*;
 import com.deu.cengonline.repository.AnnouncementRepository;
 import com.deu.cengonline.repository.CourseRepository;
 import com.deu.cengonline.repository.RoleRepository;
@@ -20,6 +19,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.ANNOUNCEMENT_NOT_FOUND;
@@ -51,48 +51,99 @@ public class AnnouncementController {
 	CourseRepository courseRepository;
 
 
-	@GetMapping()
-	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
-	public ResponseEntity<?> getAllAnnouncements() {
-		List<Announcement> list = announcementRepository.findAll();
-		return ResponseEntity.ok(list);
-	}
 
 	@GetMapping("/course/{course-id}")  // get all announcements of a course with given id.
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllAnnouncementsByCourseID(@PathVariable(value = "course-id") Long courseID) {
+		Long userID = AuthController.getCurrentUserId();
+		Optional<User> user = userRepository.findById(userID);
+		User current = user.get();
+		Role role = AuthController.getCurrentUserRole(current.getRoles());
 		Optional<Course> course = courseRepository.findById(courseID);
-
 		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-
-		Set<Announcement> list = course.get().getAnnouncements();
-		return ResponseEntity.ok(list);
+		if(role.getName().equals(RoleName.ROLE_TEACHER)){
+			if(course.get().getTeacher().getId() != userID) {
+				Response response = new Response(HttpStatus.NOT_FOUND,
+						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				return new ResponseEntity<>(response, response.getStatus());
+			}
+		}
+		else {
+			AtomicReference<Object> enrollment = new AtomicReference<>(null);
+			current.getEnrollments().forEach(e -> {
+				if(e.getId() == courseID) {
+					enrollment.set(e);
+				}
+			});
+			if (enrollment.get() == null) {
+				Response response = new Response(HttpStatus.NOT_FOUND,
+						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				return new ResponseEntity<>(response, response.getStatus());
+			}
+		}
+		return  ResponseEntity.ok(course.get().getAnnouncements());
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/{id}/course/{course-id}")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')") // get an announcement with id
-	public ResponseEntity<?> getAnnouncementById(@PathVariable(value = "id") Long announcementId) {
+	public ResponseEntity<?> getAnnouncementById(@PathVariable(value = "id") Long announcementId, @PathVariable(value = "course-id") Long courseID) {
+		Long userID = AuthController.getCurrentUserId();
+		Optional<User> user = userRepository.findById(userID);
+		User current = user.get();
+		Role role = AuthController.getCurrentUserRole(current.getRoles());
+		Optional<Course> course = courseRepository.findById(courseID);
 		Optional<Announcement> announcement = announcementRepository.findById(announcementId);
 
+		if(!course.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
 		if (!announcement.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
 				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-
-		return ResponseEntity.ok(announcement);
+		if(role.getName().equals(RoleName.ROLE_TEACHER)) {
+			if(course.get().getTeacher().getId() != userID) {
+				Response response = new Response(HttpStatus.NOT_FOUND,
+						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				return new ResponseEntity<>(response, response.getStatus());
+			}
+		}
+		else {
+			AtomicReference<Object> enrollment = new AtomicReference<>(null);
+			current.getEnrollments().forEach(e -> {
+				if(e.getId() == courseID) {
+					enrollment.set(e);
+				}
+			});
+			if (enrollment.get() == null) {
+				Response response = new Response(HttpStatus.NOT_FOUND,
+						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				return new ResponseEntity<>(response, response.getStatus());
+			}
+		}
+		if(announcement.get().getCourse().getId() != courseID) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+					String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementId));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+		return ResponseEntity.ok(announcement.get());
 	}
 
 	@PostMapping("/{course-id}")
 	@PreAuthorize("hasRole('TEACHER')")  // add an announcement to a course with given id.
 	public ResponseEntity<?> addAnnouncement(@Valid @RequestBody Announcement announcement, @PathVariable(value = "course-id") Long courseID) {
+		Long userID = AuthController.getCurrentUserId();
+
 		Optional<Course> course = courseRepository.findById(courseID);
 
-		if (!course.isPresent()) {
+		if (!course.isPresent() || course.get().getTeacher().getId() != userID) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
 				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
@@ -109,9 +160,10 @@ public class AnnouncementController {
 	@PreAuthorize("hasRole('TEACHER')")
 	public ResponseEntity<?> updateAnnouncement(
 		@PathVariable(value = "id") Long announcementID, @Valid @RequestBody Announcement announcementDetail) {
+		Long userID = AuthController.getCurrentUserId();
 		Optional<Announcement> announcement = announcementRepository.findById(announcementID);
 
-		if (!announcement.isPresent()) {
+		if (!announcement.isPresent() || announcement.get().getCourse().getTeacher().getId() != userID) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
 				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementID));
 			return new ResponseEntity<>(response, response.getStatus());
@@ -126,9 +178,10 @@ public class AnnouncementController {
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('TEACHER')")
 	public ResponseEntity<?> deleteAnnouncement(@PathVariable(value = "id") Long announcementID) {
+		Long userID = AuthController.getCurrentUserId();
 		Optional<Announcement> announcement = announcementRepository.findById(announcementID);
 
-		if (!announcement.isPresent()) {
+		if (!announcement.isPresent() || announcement.get().getCourse().getTeacher().getId() != userID) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
 				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementID));
 			return new ResponseEntity<>(response, response.getStatus());

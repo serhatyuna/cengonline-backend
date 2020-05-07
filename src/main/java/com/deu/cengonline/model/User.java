@@ -49,12 +49,14 @@ public class User extends AuditModel {
 		inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
 
+	@JsonIgnore
 	@ManyToMany(cascade = CascadeType.ALL)
 	@JoinTable(name = "enrollments",
 		joinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"),
 		inverseJoinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"))
 	private Set<Course> enrollments = new HashSet<>();
 
+	@JsonIgnore
 	@OneToMany(
 		mappedBy = "user",
 		cascade = CascadeType.ALL,
@@ -62,6 +64,7 @@ public class User extends AuditModel {
 	)
 	private Set<Submission> submissions;
 
+	@JsonIgnore
 	@OneToMany(
 		mappedBy = "teacher",
 		cascade = CascadeType.ALL,

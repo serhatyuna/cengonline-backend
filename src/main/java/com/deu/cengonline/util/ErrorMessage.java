@@ -10,6 +10,7 @@ public class ErrorMessage {
 	private static final String COURSE_NOT_FOUND_MESSAGE = "The course with id(%d) does not exist!";
 	private static final String USER_NOT_FOUND_MESSAGE = "The user with id(%d) does not exist!";
 	private static final String ANNOUNCEMENT_NOT_FOUND_MESSAGE = "The announcement with id(%d) does not exist!";
+	private static final String ASSIGNMENT_NOT_FOUND_MESSAGE = "The assignment with id(%d) does not exist!";
 	private static final String ROLE_NOT_FOUND_MESSAGE = "Not sufficient roles!";
 	private static final String SUBMISSION_NOT_FOUND_MESSAGE = "The submission with id(%d) does not exist!";
 	private static final String FAILED_LOGIN_MESSAGE = "Username or password does not match!";
@@ -25,6 +26,7 @@ public class ErrorMessage {
 		tempMap.put(ErrorName.COURSE_NOT_FOUND, COURSE_NOT_FOUND_MESSAGE);
 		tempMap.put(ErrorName.USER_NOT_FOUND, USER_NOT_FOUND_MESSAGE);
 		tempMap.put(ErrorName.ANNOUNCEMENT_NOT_FOUND, ANNOUNCEMENT_NOT_FOUND_MESSAGE);
+		tempMap.put(ErrorName.ASSIGNMENT_NOT_FOUND, ASSIGNMENT_NOT_FOUND_MESSAGE);
 		tempMap.put(ErrorName.ROLE_NOT_FOUND, ROLE_NOT_FOUND_MESSAGE);
 		tempMap.put(ErrorName.SUBMISSION_NOT_FOUND, SUBMISSION_NOT_FOUND_MESSAGE);
 		tempMap.put(ErrorName.FAILED_LOGIN, FAILED_LOGIN_MESSAGE);

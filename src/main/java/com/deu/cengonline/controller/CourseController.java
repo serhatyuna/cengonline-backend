@@ -2,6 +2,8 @@ package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.model.Course;
+import com.deu.cengonline.model.Role;
+import com.deu.cengonline.model.RoleName;
 import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.CourseRepository;
 import com.deu.cengonline.repository.RoleRepository;
@@ -18,9 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.COURSE_NOT_FOUND;
@@ -49,25 +50,57 @@ public class CourseController {
 	@Autowired
 	CourseRepository courseRepository;
 
+
+
 	@GetMapping()
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllCourses() {
-		List<Course> list = courseRepository.findAll();
-		return ResponseEntity.ok(list);
+		Long userID = AuthController.getCurrentUserId();
+		Optional<User> user = userRepository.findById(userID);
+		User current = user.get();
+		Set<Role> roles = current.getRoles();
+		Role role = AuthController.getCurrentUserRole(roles);
+		if(role.getName().equals(RoleName.ROLE_TEACHER)){
+			Set<Course> list = current.getCourses();
+			return ResponseEntity.ok(list);
+		}
+		else {
+			return ResponseEntity.ok((current.getEnrollments()));
+		}
+
 	}
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getCourseById(@PathVariable(value = "id") Long courseID) {
-		Optional<Course> course = courseRepository.findById(courseID);
-
-		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND,
-				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
-			return new ResponseEntity<>(response, response.getStatus());
+		Long userID = AuthController.getCurrentUserId();
+		Optional<User> user = userRepository.findById(userID);
+		User current = user.get();
+		Role role = AuthController.getCurrentUserRole(current.getRoles());
+		if(role.getName().equals(RoleName.ROLE_TEACHER)) {
+			Optional<Course> course = courseRepository.findById(courseID);
+			if(!course.isPresent() || course.get().getTeacher().getId() != current.getId()) {
+				Response response = new Response(HttpStatus.NOT_FOUND,
+						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				return new ResponseEntity<>(response, response.getStatus());
+			}
+			return ResponseEntity.ok(course.get());
+		}
+		else {
+			AtomicReference<Object> enrollment = new AtomicReference<>(null);
+			current.getEnrollments().forEach(e -> {
+				if(e.getId() == courseID) {
+					enrollment.set(e);
+				}
+			});
+			if (enrollment.get() == null) {
+				Response response = new Response(HttpStatus.NOT_FOUND,
+						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				return new ResponseEntity<>(response, response.getStatus());
+			}
+			return ResponseEntity.ok(enrollment.get());
 		}
 
-		return ResponseEntity.ok(course);
 	}
 
 	@PostMapping()

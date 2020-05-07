@@ -32,6 +32,7 @@ public class Course extends AuditModel {
 	@JsonIgnore
 	private Set<Announcement> announcements;
 
+	@JsonIgnore
 	@OneToMany(
 		mappedBy = "course",
 		cascade = CascadeType.ALL,
@@ -39,8 +40,10 @@ public class Course extends AuditModel {
 	)
 	private Set<Assignment> assignments;
 
+	@JsonIgnore
 	@ManyToMany(mappedBy = "enrollments")
 	private Set<User> students;
+
 
 	@ManyToOne
 	@JoinColumn(name = "teacher_id", nullable = false)
