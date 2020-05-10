@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,6 +25,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.ANNOUNCEMENT_NOT_FOUND;
 import static com.deu.cengonline.util.ErrorName.COURSE_NOT_FOUND;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -50,8 +53,6 @@ public class AnnouncementController {
 	@Autowired
 	CourseRepository courseRepository;
 
-
-
 	@GetMapping("/course/{course-id}")  // get all announcements of a course with given id.
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllAnnouncementsByCourseID(@PathVariable(value = "course-id") Long courseID) {
@@ -62,30 +63,33 @@ public class AnnouncementController {
 		Optional<Course> course = courseRepository.findById(courseID);
 		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-		if(role.getName().equals(RoleName.ROLE_TEACHER)){
-			if(course.get().getTeacher().getId() != userID) {
+		if (role.getName().equals(RoleName.ROLE_TEACHER)) {
+			if (course.get().getTeacher().getId() != userID) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
-		}
-		else {
+		} else {
 			AtomicReference<Object> enrollment = new AtomicReference<>(null);
 			current.getEnrollments().forEach(e -> {
-				if(e.getId() == courseID) {
+				if (e.getId() == courseID) {
 					enrollment.set(e);
 				}
 			});
 			if (enrollment.get() == null) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
 		}
-		return  ResponseEntity.ok(course.get().getAnnouncements());
+
+		Set<Announcement> list = course.get().getAnnouncements();
+		List<Announcement> sortedList = new ArrayList<>(list);
+		sortedList.sort(comparing(AuditModel::getCreatedAt, reverseOrder()));
+		return ResponseEntity.ok(sortedList);
 	}
 
 	@GetMapping("/{id}/course/{course-id}")
@@ -98,9 +102,9 @@ public class AnnouncementController {
 		Optional<Course> course = courseRepository.findById(courseID);
 		Optional<Announcement> announcement = announcementRepository.findById(announcementId);
 
-		if(!course.isPresent()) {
+		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		if (!announcement.isPresent()) {
@@ -108,29 +112,28 @@ public class AnnouncementController {
 				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-		if(role.getName().equals(RoleName.ROLE_TEACHER)) {
-			if(course.get().getTeacher().getId() != userID) {
+		if (role.getName().equals(RoleName.ROLE_TEACHER)) {
+			if (course.get().getTeacher().getId() != userID) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
-		}
-		else {
+		} else {
 			AtomicReference<Object> enrollment = new AtomicReference<>(null);
 			current.getEnrollments().forEach(e -> {
-				if(e.getId() == courseID) {
+				if (e.getId() == courseID) {
 					enrollment.set(e);
 				}
 			});
 			if (enrollment.get() == null) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
 		}
-		if(announcement.get().getCourse().getId() != courseID) {
+		if (announcement.get().getCourse().getId() != courseID) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementId));
+				String.format(ERRORS.get(ANNOUNCEMENT_NOT_FOUND), announcementId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		return ResponseEntity.ok(announcement.get());

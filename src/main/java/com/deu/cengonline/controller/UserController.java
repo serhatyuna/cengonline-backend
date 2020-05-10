@@ -94,7 +94,7 @@ public class UserController {
 			.stream()
 			.anyMatch(crs -> crs.getId().equals(courseID));
 
-		if (!alreadyAttended) {
+		if (alreadyAttended) {
 			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(ALREADY_ATTENDED));
 			return new ResponseEntity<>(response, response.getStatus());
 		}

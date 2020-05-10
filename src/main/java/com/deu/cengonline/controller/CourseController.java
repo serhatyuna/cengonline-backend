@@ -1,10 +1,7 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
-import com.deu.cengonline.model.Course;
-import com.deu.cengonline.model.Role;
-import com.deu.cengonline.model.RoleName;
-import com.deu.cengonline.model.User;
+import com.deu.cengonline.model.*;
 import com.deu.cengonline.repository.CourseRepository;
 import com.deu.cengonline.repository.RoleRepository;
 import com.deu.cengonline.repository.UserRepository;
@@ -50,8 +47,6 @@ public class CourseController {
 	@Autowired
 	CourseRepository courseRepository;
 
-
-
 	@GetMapping()
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllCourses() {
@@ -60,14 +55,17 @@ public class CourseController {
 		User current = user.get();
 		Set<Role> roles = current.getRoles();
 		Role role = AuthController.getCurrentUserRole(roles);
-		if(role.getName().equals(RoleName.ROLE_TEACHER)){
+		if (role.getName().equals(RoleName.ROLE_TEACHER)) {
 			Set<Course> list = current.getCourses();
-			return ResponseEntity.ok(list);
+			List<Course> sortedList = new ArrayList<>(list);
+			sortedList.sort(Comparator.comparing(AuditModel::getCreatedAt));
+			return ResponseEntity.ok(sortedList);
+		} else {
+			Set<Course> list = current.getEnrollments();
+			List<Course> sortedList = new ArrayList<>(list);
+			sortedList.sort(Comparator.comparing(AuditModel::getCreatedAt));
+			return ResponseEntity.ok(sortedList);
 		}
-		else {
-			return ResponseEntity.ok((current.getEnrollments()));
-		}
-
 	}
 
 	@GetMapping("/{id}")
@@ -77,25 +75,24 @@ public class CourseController {
 		Optional<User> user = userRepository.findById(userID);
 		User current = user.get();
 		Role role = AuthController.getCurrentUserRole(current.getRoles());
-		if(role.getName().equals(RoleName.ROLE_TEACHER)) {
+		if (role.getName().equals(RoleName.ROLE_TEACHER)) {
 			Optional<Course> course = courseRepository.findById(courseID);
-			if(!course.isPresent() || course.get().getTeacher().getId() != current.getId()) {
+			if (!course.isPresent() || course.get().getTeacher().getId() != current.getId()) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
 			return ResponseEntity.ok(course.get());
-		}
-		else {
+		} else {
 			AtomicReference<Object> enrollment = new AtomicReference<>(null);
 			current.getEnrollments().forEach(e -> {
-				if(e.getId() == courseID) {
+				if (e.getId() == courseID) {
 					enrollment.set(e);
 				}
 			});
 			if (enrollment.get() == null) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
 			return ResponseEntity.ok(enrollment.get());
