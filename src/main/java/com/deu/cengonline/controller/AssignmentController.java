@@ -16,14 +16,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
-import static com.deu.cengonline.util.ErrorName.*;
-import static com.deu.cengonline.util.ErrorName.ANNOUNCEMENT_NOT_FOUND;
+import static com.deu.cengonline.util.ErrorName.ASSIGNMENT_NOT_FOUND;
+import static com.deu.cengonline.util.ErrorName.COURSE_NOT_FOUND;
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -60,31 +63,33 @@ public class AssignmentController {
 		Optional<Course> course = courseRepository.findById(courseID);
 		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-		if(role.getName().equals(RoleName.ROLE_TEACHER)){
-			if(course.get().getTeacher().getId() != userID) {
+		if (role.getName().equals(RoleName.ROLE_TEACHER)) {
+			if (course.get().getTeacher().getId() != userID) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
-		}
-		else {
+		} else {
 			AtomicReference<Object> enrollment = new AtomicReference<>(null);
 			current.getEnrollments().forEach(e -> {
-				if(e.getId() == courseID) {
+				if (e.getId() == courseID) {
 					enrollment.set(e);
 				}
 			});
 			if (enrollment.get() == null) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
 		}
-		Set<Assignment> assignmentSet  = course.get().getAssignments();
-		return ResponseEntity.ok(assignmentSet);
+
+		Set<Assignment> list = course.get().getAssignments();
+		List<Assignment> sortedList = new ArrayList<>(list);
+		sortedList.sort(comparing(AuditModel::getCreatedAt, reverseOrder()));
+		return ResponseEntity.ok(sortedList);
 	}
 
 	@GetMapping("/{id}/course/{course-id}")
@@ -95,41 +100,40 @@ public class AssignmentController {
 		User current = user.get();
 		Role role = AuthController.getCurrentUserRole(current.getRoles());
 		Optional<Course> course = courseRepository.findById(courseID);
-		Optional<Assignment> assignment= assignmentRepository.findById(assignmentId);
+		Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
 
-		if(!course.isPresent()) {
+		if (!course.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		if (!assignment.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentId));
+				String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
-		if(role.getName().equals(RoleName.ROLE_TEACHER)) {
-			if(course.get().getTeacher().getId() != userID) {
+		if (role.getName().equals(RoleName.ROLE_TEACHER)) {
+			if (course.get().getTeacher().getId() != userID) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
-		}
-		else {
+		} else {
 			AtomicReference<Object> enrollment = new AtomicReference<>(null);
 			current.getEnrollments().forEach(e -> {
-				if(e.getId() == courseID) {
+				if (e.getId() == courseID) {
 					enrollment.set(e);
 				}
 			});
 			if (enrollment.get() == null) {
 				Response response = new Response(HttpStatus.NOT_FOUND,
-						String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+					String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 				return new ResponseEntity<>(response, response.getStatus());
 			}
 		}
-		if(assignment.get().getCourse().getId() != courseID) {
+		if (assignment.get().getCourse().getId() != courseID) {
 			Response response = new Response(HttpStatus.NOT_FOUND,
-					String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentId));
+				String.format(ERRORS.get(ASSIGNMENT_NOT_FOUND), assignmentId));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		return ResponseEntity.ok(assignment.get());

@@ -1,6 +1,7 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
+import com.deu.cengonline.model.AuditModel;
 import com.deu.cengonline.model.Message;
 import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.MessageRepository;
@@ -18,12 +19,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.MESSAGE_TO_YOURSELF;
 import static com.deu.cengonline.util.ErrorName.USER_NOT_FOUND;
+import static java.util.Comparator.comparing;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -69,7 +72,9 @@ public class MessageController {
 			messageRepository.findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByCreatedAt(
 				loggedInUserID, receiverID, loggedInUserID, receiverID);
 
-		return ResponseEntity.ok(messages);
+		List<Message> sortedList = new ArrayList<>(messages);
+		sortedList.sort(comparing(AuditModel::getCreatedAt));
+		return ResponseEntity.ok(sortedList);
 	}
 
 	@PostMapping("/{receiverID}")
