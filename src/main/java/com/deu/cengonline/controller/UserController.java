@@ -92,7 +92,7 @@ public class UserController {
 		boolean alreadyAttended = student
 			.getCourses()
 			.stream()
-			.anyMatch(crs -> crs.getId().equals(courseID));
+			.anyMatch(crs -> crs.getId().equals(courseID)); 
 
 		if (alreadyAttended) {
 			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(ALREADY_ATTENDED));
