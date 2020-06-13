@@ -99,6 +99,8 @@ public class UserController {
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		student.getEnrollments().add(course.get());
+		course.get().getUsers().add(student);
+		courseRepository.save(course.get());
 		userRepository.save(student);
 		return ResponseEntity.ok("Student has been entered the class successfully.");
 	}
