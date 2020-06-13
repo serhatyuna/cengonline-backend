@@ -50,10 +50,8 @@ public class User extends AuditModel {
 	private Set<Role> roles = new HashSet<>();
 
 	@JsonIgnore
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "enrollments",
-		joinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"),
-		inverseJoinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"))
+	@ManyToMany(mappedBy = "users",
+		cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	private Set<Course> enrollments = new HashSet<>();
 
 	@JsonIgnore

@@ -152,6 +152,9 @@ public class CourseController {
 		}
 
 		Course courseToDelete = course.get();
+		for (User u : courseToDelete.getUsers()) {
+			u.getEnrollments().remove(courseToDelete);
+		}
 		courseRepository.delete(courseToDelete);
 
 		Response response = new Response(HttpStatus.OK,

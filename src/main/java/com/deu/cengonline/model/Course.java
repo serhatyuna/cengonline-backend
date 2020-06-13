@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -41,9 +42,11 @@ public class Course extends AuditModel {
 	private Set<Assignment> assignments;
 
 	@JsonIgnore
-	@ManyToMany(mappedBy = "enrollments")
-	private Set<User> students;
-
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "enrollments",
+		joinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"),
+		inverseJoinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"))
+	private Set<User> users = new HashSet<>();
 
 	@ManyToOne
 	@JoinColumn(name = "teacher_id", nullable = false)
@@ -97,12 +100,12 @@ public class Course extends AuditModel {
 		this.assignments = assignments;
 	}
 
-	public Set<User> getStudents() {
-		return students;
+	public Set<User> getUsers() {
+		return users;
 	}
 
-	public void setStudents(Set<User> students) {
-		this.students = students;
+	public void setUsers(Set<User> users) {
+		this.users = users;
 	}
 
 	public User getTeacher() {
