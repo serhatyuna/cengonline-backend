@@ -33,6 +33,14 @@ public class Course extends AuditModel {
 	@JsonIgnore
 	private Set<Announcement> announcements;
 
+	@OneToMany(
+		mappedBy = "course",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
+	@JsonIgnore
+	private Set<Post> posts;
+
 	@JsonIgnore
 	@OneToMany(
 		mappedBy = "course",
@@ -90,6 +98,14 @@ public class Course extends AuditModel {
 
 	public void setAnnouncements(Set<Announcement> announcements) {
 		this.announcements = announcements;
+	}
+
+	public Set<Post> getPosts() {
+		return posts;
+	}
+
+	public void setPosts(Set<Post> posts) {
+		this.posts = posts;
 	}
 
 	public Set<Assignment> getAssignments() {
