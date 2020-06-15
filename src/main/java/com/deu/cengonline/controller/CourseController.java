@@ -100,6 +100,22 @@ public class CourseController {
 
 	}
 
+	@GetMapping("/students/{id}")
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getStudentsByCourseId(@PathVariable(value = "id") Long courseID) {
+		Optional<Course> oCourse = courseRepository.findById(courseID);
+		if (!oCourse.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+		Course course = oCourse.get();
+		Set<User> studentsSet = course.getUsers();
+		List<User> students = new ArrayList<>(studentsSet);
+		students.sort(Comparator.comparing(User::getName).thenComparing(User::getSurname));
+		return ResponseEntity.ok(students);
+	}
+
 	@PostMapping()
 	@PreAuthorize("hasRole('TEACHER')")
 	public ResponseEntity<?> addCourse(@Valid @RequestBody Course course) {
@@ -142,6 +158,7 @@ public class CourseController {
 	}
 
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasRole('TEACHER')")
 	public ResponseEntity<?> deleteCourse(@PathVariable(value = "id") Long courseID) {
 		Optional<Course> course = courseRepository.findById(courseID);
 
