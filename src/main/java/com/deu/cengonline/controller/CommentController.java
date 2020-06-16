@@ -27,7 +27,7 @@ import static java.util.Comparator.reverseOrder;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping("/api/comments")
 public class CommentController {
     @Autowired
     AuthenticationManager authenticationManager;
