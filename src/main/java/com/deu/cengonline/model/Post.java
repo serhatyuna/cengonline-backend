@@ -23,7 +23,6 @@ public class Post extends AuditModel {
     private Course course;
 
 
-    @JsonIgnore
     @OneToMany(
             mappedBy = "post",
             cascade = CascadeType.ALL,
