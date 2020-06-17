@@ -56,21 +56,24 @@ public class CommentController {
 
 
     @PostMapping("/{post-id}")
+    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
     public ResponseEntity<?> addComment(@Valid @RequestBody Comment comment, @PathVariable(value = "post-id") Long postId) {
         Long userID = AuthController.getCurrentUserId();
 
-        Optional<Post> post = postRepository.findById(postId);
+      Optional<Post> post = postRepository.findById(postId);
         boolean registeredToCourse = false;
-        for (User user:post.get().getCourse().getUsers()) {
-            if(user.getId() == userID) {
-                registeredToCourse = true;
-                break;
+        if(post.isPresent()) {
+            for (User user:post.get().getCourse().getUsers()) {
+                if(user.getId() == userID) {
+                    registeredToCourse = true;
+                    break;
+                }
             }
         }
 
-        if (!post.isPresent() || (post.get().getCourse().getTeacher().getId() != userID && !registeredToCourse)) {
+      if (!post.isPresent()  ||(post.get().getCourse().getTeacher().getId() != userID && !registeredToCourse)) {
             Response response = new Response(HttpStatus.NOT_FOUND,
-                    String.format(ERRORS.get(POST_NOT_FOUND), post.get().getId()));
+                    String.format(ERRORS.get(POST_NOT_FOUND), postId));
             return new ResponseEntity<>(response, response.getStatus());
         }
 
@@ -78,7 +81,7 @@ public class CommentController {
         Post postEntity = post.get();
         newComment.setPost(postEntity);
         Optional<User> user = userRepository.findById(userID);
-
+        newComment.setUser(user.get());
         commentRepository.save(newComment);
         return ResponseEntity.ok(newComment);
     }
