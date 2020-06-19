@@ -1,10 +1,14 @@
 package com.deu.cengonline.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.SortNatural;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Entity
 @Table(name = "posts")
@@ -28,6 +32,7 @@ public class Post extends AuditModel {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @OrderBy
     private Set<Comment> comments;
 
     protected Post() {
@@ -56,15 +61,14 @@ public class Post extends AuditModel {
     public Course getCourse() {
         return course;
     }
-
     public void setCourse(Course course) {
         this.course = course;
     }
+
     public Set<Comment> getComments() {
         return comments;
     }
-
-    public void setAssignments(Set<Comment> comments) {
+    public void setComments(SortedSet<Comment> comments) {
         this.comments = comments;
     }
 }

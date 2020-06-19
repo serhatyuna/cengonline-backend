@@ -18,7 +18,7 @@ import java.util.Set;
 		"email"
 	})
 })
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
