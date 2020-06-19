@@ -18,7 +18,7 @@ import java.util.Set;
 		"email"
 	})
 })
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -85,6 +85,15 @@ public class User extends AuditModel {
 	)
 	@JsonIgnore
 	private Set<Message> receivedMessages;
+
+	@OneToMany(
+			mappedBy = "user",
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
+	)
+	@JsonIgnore
+	private Set<Comment> comments;
+
 
 	protected User() {
 	}
@@ -162,6 +171,14 @@ public class User extends AuditModel {
 
 	public Set<Course> getCourses() {
 		return courses;
+	}
+
+	public void setComments(Set<Comment> comments) {
+		this.comments = comments;
+	}
+
+	public Set<Comment> getComments() {
+		return comments;
 	}
 
 	public void setCourses(Set<Course> courses) {

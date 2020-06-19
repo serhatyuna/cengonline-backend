@@ -3,6 +3,7 @@ package com.deu.cengonline.util;
 public enum ErrorName {
 	COURSE_NOT_FOUND,
 	ANNOUNCEMENT_NOT_FOUND,
+	POST_NOT_FOUND,
 	ASSIGNMENT_NOT_FOUND,
 	SUBMISSION_NOT_FOUND,
 	USER_NOT_FOUND,
