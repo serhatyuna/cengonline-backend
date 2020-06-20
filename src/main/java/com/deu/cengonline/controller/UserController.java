@@ -2,7 +2,6 @@ package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
 import com.deu.cengonline.model.Course;
-import com.deu.cengonline.model.Role;
 import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.CourseRepository;
 import com.deu.cengonline.repository.RoleRepository;
@@ -18,7 +17,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.*;
@@ -46,7 +46,6 @@ public class UserController {
 	CourseRepository courseRepository;
 
 
-
 	@GetMapping("/")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllUsers() {
@@ -68,9 +67,20 @@ public class UserController {
 		if (!current.isPresent()) {
 			Response response = new Response(HttpStatus.NOT_FOUND, ERRORS.get(NO_USER_YET));
 			return new ResponseEntity<>(response, response.getStatus());
-		}
-		else
+		} else
 			return ResponseEntity.ok(current.get());
+	}
+
+	@GetMapping("/{id}")
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getStudentById(@PathVariable(value = "id") Long userID) {
+		Optional<User> userOptional = userRepository.findById(userID);
+		if (!userOptional.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(USER_NOT_FOUND), userID));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+		return ResponseEntity.ok(userOptional.get());
 	}
 
 	@PostMapping("/attend-class/{id}")
@@ -88,11 +98,11 @@ public class UserController {
 
 		Optional<User> user = userRepository.findById(id);
 		User student = user.get();
-		
+
 		boolean alreadyAttended = student
 			.getCourses()
 			.stream()
-			.anyMatch(crs -> crs.getId().equals(courseID)); 
+			.anyMatch(crs -> crs.getId().equals(courseID));
 
 		if (alreadyAttended) {
 			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(ALREADY_ATTENDED));
