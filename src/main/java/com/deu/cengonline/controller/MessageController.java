@@ -1,9 +1,7 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
-import com.deu.cengonline.model.AuditModel;
-import com.deu.cengonline.model.Message;
-import com.deu.cengonline.model.User;
+import com.deu.cengonline.model.*;
 import com.deu.cengonline.repository.MessageRepository;
 import com.deu.cengonline.repository.RoleRepository;
 import com.deu.cengonline.repository.UserRepository;
@@ -19,9 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.deu.cengonline.util.ErrorMessage.ERRORS;
 import static com.deu.cengonline.util.ErrorName.MESSAGE_TO_YOURSELF;
@@ -75,6 +72,51 @@ public class MessageController {
 		List<Message> sortedList = new ArrayList<>(messages);
 		sortedList.sort(comparing(AuditModel::getCreatedAt));
 		return ResponseEntity.ok(sortedList);
+	}
+
+	@GetMapping("/chatters")  // get all messages between two people.
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getAllPossibleChatters() {
+		// Get logged in user
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String email = ((UserPrinciple) principal).getEmail();
+
+		Optional<User> loggedInUser = userRepository.findByEmail(email);
+		User user = loggedInUser.get();
+
+		boolean isTeacher = user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ROLE_TEACHER);
+
+		if (isTeacher) {
+			List<User> persons = new ArrayList<>();
+			Set<Course> courses = user.getCourses();
+			courses.forEach(c -> persons.addAll(c.getUsers()));
+
+			List<User> distinctPersons = persons
+				.stream()
+				.distinct()
+				.sorted(Comparator.comparing(User::getName)
+					.thenComparing(User::getSurname))
+				.collect(Collectors.toList());
+
+			return ResponseEntity.ok(distinctPersons);
+		}
+
+		List<User> persons = new ArrayList<>();
+		Set<Course> courses = user.getEnrollments();
+		courses.forEach(c -> {
+			persons.addAll(c.getUsers());
+			persons.add(c.getTeacher());
+		});
+
+		List<User> distinctPersons = persons
+			.stream()
+			.filter(p -> !p.equals(user))
+			.distinct()
+			.sorted(Comparator.comparing(User::getName)
+				.thenComparing(User::getSurname))
+			.collect(Collectors.toList());
+
+		return ResponseEntity.ok(distinctPersons);
 	}
 
 	@PostMapping("/{receiverID}")
