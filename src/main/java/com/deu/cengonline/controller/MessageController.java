@@ -1,8 +1,7 @@
 package com.deu.cengonline.controller;
 
 import com.deu.cengonline.message.response.Response;
-import com.deu.cengonline.model.Message;
-import com.deu.cengonline.model.User;
+import com.deu.cengonline.model.*;
 import com.deu.cengonline.repository.MessageRepository;
 import com.deu.cengonline.repository.RoleRepository;
 import com.deu.cengonline.repository.UserRepository;
@@ -18,8 +17,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.MESSAGE_TO_YOURSELF;
+import static com.deu.cengonline.util.ErrorName.USER_NOT_FOUND;
+import static java.util.Comparator.comparing;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -55,7 +59,7 @@ public class MessageController {
 
 		if (!receiverUser.isPresent()) {
 			Response response = new Response(HttpStatus.BAD_REQUEST,
-				String.format("The user with id(%d) does not exist!", receiverID));
+				String.format(ERRORS.get(USER_NOT_FOUND), receiverID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -65,10 +69,56 @@ public class MessageController {
 			messageRepository.findBySenderIdAndReceiverIdOrReceiverIdAndSenderIdOrderByCreatedAt(
 				loggedInUserID, receiverID, loggedInUserID, receiverID);
 
-		return ResponseEntity.ok(messages);
+		List<Message> sortedList = new ArrayList<>(messages);
+		sortedList.sort(comparing(AuditModel::getCreatedAt));
+		return ResponseEntity.ok(sortedList);
 	}
 
-	// TODO: Kendisine mesaj atamasın.
+	@GetMapping("/chatters")  // get all messages between two people.
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getAllPossibleChatters() {
+		// Get logged in user
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String email = ((UserPrinciple) principal).getEmail();
+
+		Optional<User> loggedInUser = userRepository.findByEmail(email);
+		User user = loggedInUser.get();
+
+		boolean isTeacher = user.getRoles().stream().anyMatch(r -> r.getName() == RoleName.ROLE_TEACHER);
+
+		if (isTeacher) {
+			List<User> persons = new ArrayList<>();
+			Set<Course> courses = user.getCourses();
+			courses.forEach(c -> persons.addAll(c.getUsers()));
+
+			List<User> distinctPersons = persons
+				.stream()
+				.distinct()
+				.sorted(Comparator.comparing(User::getName)
+					.thenComparing(User::getSurname))
+				.collect(Collectors.toList());
+
+			return ResponseEntity.ok(distinctPersons);
+		}
+
+		List<User> persons = new ArrayList<>();
+		Set<Course> courses = user.getEnrollments();
+		courses.forEach(c -> {
+			persons.addAll(c.getUsers());
+			persons.add(c.getTeacher());
+		});
+
+		List<User> distinctPersons = persons
+			.stream()
+			.filter(p -> !p.equals(user))
+			.distinct()
+			.sorted(Comparator.comparing(User::getName)
+				.thenComparing(User::getSurname))
+			.collect(Collectors.toList());
+
+		return ResponseEntity.ok(distinctPersons);
+	}
+
 	@PostMapping("/{receiverID}")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")  // send a message to given user id.
 	public ResponseEntity<?> sendMessage(@Valid @RequestBody Message message, @PathVariable(value = "receiverID") Long receiverID) {
@@ -81,12 +131,17 @@ public class MessageController {
 
 		if (!receiverUserOpt.isPresent()) {
 			Response response = new Response(HttpStatus.BAD_REQUEST,
-				String.format("The user with id(%d) does not exist!", receiverID));
+				String.format(ERRORS.get(USER_NOT_FOUND), receiverID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
 		User loggedInUser = loggedInUserOpt.get();
 		User receiverUser = receiverUserOpt.get();
+
+		if (loggedInUser.getId().equals(receiverUser.getId())) {
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(MESSAGE_TO_YOURSELF));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
 
 		String newContent = message.getContent();
 		Message newMessage = new Message(newContent);

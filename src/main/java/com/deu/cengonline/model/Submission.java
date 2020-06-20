@@ -17,7 +17,6 @@ public class Submission extends AuditModel {
 	private User user;
 
 	@ManyToOne
-	@JsonIgnore
 	@JoinColumn(name = "assignment_id", nullable = false)
 	private Assignment assignment;
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -24,15 +25,36 @@ public class Course extends AuditModel {
 	@Size(min = 2, max = 100)
 	private String term;
 
-	@OneToMany(mappedBy = "course")
+	@OneToMany(
+		mappedBy = "course",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	@JsonIgnore
 	private Set<Announcement> announcements;
 
-	@OneToMany(mappedBy = "course")
+	@OneToMany(
+		mappedBy = "course",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
+	@JsonIgnore
+	private Set<Post> posts;
+
+	@JsonIgnore
+	@OneToMany(
+		mappedBy = "course",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Assignment> assignments;
 
-	@ManyToMany(mappedBy = "enrollments")
-	private Set<User> students;
+	@JsonIgnore
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "enrollments",
+		joinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"),
+		inverseJoinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"))
+	private Set<User> users = new HashSet<>();
 
 	@ManyToOne
 	@JoinColumn(name = "teacher_id", nullable = false)
@@ -78,6 +100,14 @@ public class Course extends AuditModel {
 		this.announcements = announcements;
 	}
 
+	public Set<Post> getPosts() {
+		return posts;
+	}
+
+	public void setPosts(Set<Post> posts) {
+		this.posts = posts;
+	}
+
 	public Set<Assignment> getAssignments() {
 		return assignments;
 	}
@@ -86,12 +116,12 @@ public class Course extends AuditModel {
 		this.assignments = assignments;
 	}
 
-	public Set<User> getStudents() {
-		return students;
+	public Set<User> getUsers() {
+		return users;
 	}
 
-	public void setStudents(Set<User> students) {
-		this.students = students;
+	public void setUsers(Set<User> users) {
+		this.users = users;
 	}
 
 	public User getTeacher() {

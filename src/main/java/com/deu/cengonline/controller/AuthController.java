@@ -10,6 +10,7 @@ import com.deu.cengonline.model.User;
 import com.deu.cengonline.repository.RoleRepository;
 import com.deu.cengonline.repository.UserRepository;
 import com.deu.cengonline.security.jwt.JwtProvider;
+import com.deu.cengonline.security.services.UserPrinciple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -60,7 +66,7 @@ public class AuthController {
 			String jwt = jwtProvider.generateJwtToken(authentication);
 			return ResponseEntity.ok(new JwtResponse(jwt));
 		} catch (BadCredentialsException e) {
-			Response response = new Response(HttpStatus.BAD_REQUEST, "Username or password does not match!", e);
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(FAILED_LOGIN), e);
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 	}
@@ -68,7 +74,7 @@ public class AuthController {
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpForm signUpRequest) {
 		if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-			Response response = new Response(HttpStatus.BAD_REQUEST, "Email is already in use!");
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(EMAIL_IN_USE));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
@@ -79,20 +85,21 @@ public class AuthController {
 		Set<String> strRoles = signUpRequest.getRole();
 		Set<Role> roles = new HashSet<>();
 		if (!strRoles.contains("teacher") && !strRoles.contains("student")) {
-			Response response = new Response(HttpStatus.BAD_REQUEST, "Not sufficient roles");
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(ROLE_NOT_FOUND));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
+
 		strRoles.forEach(role -> {
 			switch (role) {
 				case "teacher":
-					Role pmRole = roleRepository.findByName(RoleName.ROLE_TEACHER)
+					Role teacherRole = roleRepository.findByName(RoleName.ROLE_TEACHER)
 						.orElseThrow(() -> new RuntimeException("User Role not found."));
-					roles.add(pmRole);
+					roles.add(teacherRole);
 					break;
 				case "student":
-					Role adminRole = roleRepository.findByName(RoleName.ROLE_STUDENT)
+					Role studentRole = roleRepository.findByName(RoleName.ROLE_STUDENT)
 						.orElseThrow(() -> new RuntimeException("User Role not found."));
-					roles.add(adminRole);
+					roles.add(studentRole);
 					break;
 			}
 		});
@@ -101,5 +108,19 @@ public class AuthController {
 		userRepository.save(user);
 
 		return ResponseEntity.ok().body("User registered successfully!");
+	}
+
+	public static Long getCurrentUserId() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Long userID = ((UserPrinciple) principal).getId();
+		return userID;
+	}
+	public static Role getCurrentUserRole(Set<Role> roles) {
+		Collection c;
+
+		Iterator iter = roles.iterator();
+		Object first = iter.next();
+		Role role = (Role) first;
+		return role;
 	}
 }

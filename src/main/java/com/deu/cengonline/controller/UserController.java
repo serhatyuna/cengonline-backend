@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+import static com.deu.cengonline.util.ErrorMessage.ERRORS;
+import static com.deu.cengonline.util.ErrorName.*;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/users")
@@ -42,15 +45,42 @@ public class UserController {
 	@Autowired
 	CourseRepository courseRepository;
 
+
 	@GetMapping("/")
 	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
 	public ResponseEntity<?> getAllUsers() {
 		List<User> users = userRepository.findAll();
+
 		if (users.isEmpty()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "There is no user yet!");
+			Response response = new Response(HttpStatus.NOT_FOUND, ERRORS.get(NO_USER_YET));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		return ResponseEntity.ok(users);
+	}
+
+	@GetMapping("/current")
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getCurrentUser() {
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Long id = ((UserPrinciple) principal).getId();
+		Optional<User> current = userRepository.findById(id);
+		if (!current.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND, ERRORS.get(NO_USER_YET));
+			return new ResponseEntity<>(response, response.getStatus());
+		} else
+			return ResponseEntity.ok(current.get());
+	}
+
+	@GetMapping("/{id}")
+	@PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER')")
+	public ResponseEntity<?> getStudentById(@PathVariable(value = "id") Long userID) {
+		Optional<User> userOptional = userRepository.findById(userID);
+		if (!userOptional.isPresent()) {
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(USER_NOT_FOUND), userID));
+			return new ResponseEntity<>(response, response.getStatus());
+		}
+		return ResponseEntity.ok(userOptional.get());
 	}
 
 	@PostMapping("/attend-class/{id}")
@@ -59,21 +89,30 @@ public class UserController {
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		Long id = ((UserPrinciple) principal).getId();
 		Optional<Course> course = courseRepository.findById(courseID);
+
 		if (!course.isPresent()) {
-			Response response = new Response(HttpStatus.NOT_FOUND, "Course is not found!");
+			Response response = new Response(HttpStatus.NOT_FOUND,
+				String.format(ERRORS.get(COURSE_NOT_FOUND), courseID));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 
 		Optional<User> user = userRepository.findById(id);
 		User student = user.get();
-		boolean alreadyAttended = student.getCourses().stream().anyMatch(crs -> crs.getId().equals(courseID));
-		if (!alreadyAttended) {
-			Response response = new Response(HttpStatus.BAD_REQUEST, "Already attended the course!");
+
+		boolean alreadyAttended = student
+			.getCourses()
+			.stream()
+			.anyMatch(crs -> crs.getId().equals(courseID));
+
+		if (alreadyAttended) {
+			Response response = new Response(HttpStatus.BAD_REQUEST, ERRORS.get(ALREADY_ATTENDED));
 			return new ResponseEntity<>(response, response.getStatus());
 		}
 		student.getEnrollments().add(course.get());
+		course.get().getUsers().add(student);
+		courseRepository.save(course.get());
 		userRepository.save(student);
-		return ResponseEntity.ok("student has been entered the class successfully.");
+		return ResponseEntity.ok("Student has been entered the class successfully.");
 	}
 
 }

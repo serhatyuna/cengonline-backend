@@ -18,7 +18,7 @@ import java.util.Set;
 		"email"
 	})
 })
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+//@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class User extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,25 +49,51 @@ public class User extends AuditModel {
 		inverseJoinColumns = @JoinColumn(name = "role_id"))
 	private Set<Role> roles = new HashSet<>();
 
-	@ManyToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "enrollments",
-		joinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"),
-		inverseJoinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"))
+	@JsonIgnore
+	@ManyToMany(mappedBy = "users",
+		cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	private Set<Course> enrollments = new HashSet<>();
 
-	@OneToMany(mappedBy = "user")
+	@JsonIgnore
+	@OneToMany(
+		mappedBy = "user",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Submission> submissions;
 
-	@OneToMany(mappedBy = "teacher")
+	@JsonIgnore
+	@OneToMany(
+		mappedBy = "teacher",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Course> courses;
 
-	@OneToMany(mappedBy = "sender")
+	@OneToMany(
+		mappedBy = "sender",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	@JsonIgnore
 	private Set<Message> sentMessages;
 
-	@OneToMany(mappedBy = "receiver")
+	@OneToMany(
+		mappedBy = "receiver",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	@JsonIgnore
 	private Set<Message> receivedMessages;
+
+	@OneToMany(
+			mappedBy = "user",
+			cascade = CascadeType.ALL,
+			orphanRemoval = true
+	)
+	@JsonIgnore
+	private Set<Comment> comments;
+
 
 	protected User() {
 	}
@@ -145,6 +171,14 @@ public class User extends AuditModel {
 
 	public Set<Course> getCourses() {
 		return courses;
+	}
+
+	public void setComments(Set<Comment> comments) {
+		this.comments = comments;
+	}
+
+	public Set<Comment> getComments() {
+		return comments;
 	}
 
 	public void setCourses(Set<Course> courses) {

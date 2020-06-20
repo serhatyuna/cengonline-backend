@@ -1,7 +1,9 @@
 package com.deu.cengonline.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
@@ -10,6 +12,7 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Set;
 
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 @Entity
 @Table(name = "assignments")
 public class Assignment extends AuditModel {
@@ -36,7 +39,11 @@ public class Assignment extends AuditModel {
 	@JoinColumn(name = "course_id", nullable = false)
 	private Course course;
 
-	@OneToMany(mappedBy = "assignment")
+	@OneToMany(
+		mappedBy = "assignment",
+		cascade = CascadeType.ALL,
+		orphanRemoval = true
+	)
 	private Set<Submission> submissions;
 
 	protected Assignment() {
@@ -99,5 +106,9 @@ public class Assignment extends AuditModel {
 
 	public void setSubmissions(Set<Submission> submissions) {
 		this.submissions = submissions;
+	}
+
+	public void addSubmission(Submission submission) {
+		submissions.add(submission);
 	}
 }
